@@ -1,5 +1,6 @@
 package app.cleancode;
 
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.bson.Document;
@@ -15,16 +16,27 @@ public class Entrypoint {
         System.out.println("Creating the client");
         try (var mongoClient = MongoClients.create()) {
             System.out.println("Getting the database");
+
             var database = mongoClient.getDatabase("test");
             System.out.println("Getting the collection");
+
             MongoCollection<Person> peopleCollection = database.getCollection("people", Person.class);
             System.out.println("Performing queries");
-            var people = Mono.from(peopleCollection.deleteMany(new Document())).flatMap(
-                    v -> Mono.from(peopleCollection.insertMany(
-                            IntStream.range(0, 100).mapToObj(i -> new Person("Human", Integer.toString(i))).toList())))
-                    .flatMapMany(v -> Flux.from(peopleCollection.find())).buffer(20).collectList().block();
+
+            List<Person> people = IntStream
+                    .range(0, 100)
+                    .mapToObj(i -> new Person("Human", Integer.toString(i)))
+                    .toList();
+
+            Mono.from(peopleCollection.deleteMany(new Document()))
+                    .flatMap(v -> Mono.from(peopleCollection.insertMany(people)))
+                    .flatMapMany(v -> Flux.from(peopleCollection.find()))
+                    .buffer(20)
+                    .doOnNext(System.out::println)
+                    .collectList()
+                    .block();
+
             System.out.println("Done");
-            System.out.println(people);
         }
     }
 }
