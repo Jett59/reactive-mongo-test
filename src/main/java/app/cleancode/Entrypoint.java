@@ -13,15 +13,9 @@ import reactor.core.publisher.Mono;
 
 public class Entrypoint {
     public static void main(String[] args) {
-        System.out.println("Creating the client");
         try (var mongoClient = MongoClients.create()) {
-            System.out.println("Getting the database");
-
             var database = mongoClient.getDatabase("test");
-            System.out.println("Getting the collection");
-
-            MongoCollection<Person> peopleCollection = database.getCollection("people", Person.class);
-            System.out.println("Performing queries");
+            var peopleCollection = database.getCollection("people", Person.class);
 
             List<Person> people = IntStream
                     .range(0, 100)
