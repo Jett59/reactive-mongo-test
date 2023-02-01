@@ -32,9 +32,8 @@ public class Entrypoint {
                     .flatMap(v -> Mono.from(peopleCollection.insertMany(people)))
                     .flatMapMany(v -> Flux.from(peopleCollection.find()))
                     .buffer(20)
-                    .doOnNext(System.out::println)
-                    .collectList()
-                    .block();
+                    .doOnNext(System.out::println) // Here's where you might write the results to a chunked web service response 20 at a time
+                    .blockLast();
 
             System.out.println("Done");
         }
